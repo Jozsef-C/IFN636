@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import axiosInstance from '../axiosConfig';
+import { useNavigate } from 'react-router-dom';
 
 const Events = () => {
   const [events, setEvents] = useState([]);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axiosInstance.get('/events');
+        const response = await axiosInstance.get('/api/events');
         setEvents(response.data);
       } catch (error) {
         alert('Failed to fetch events.');
@@ -26,8 +27,11 @@ const Events = () => {
       ) : (
         <div className="grid gap-4">
           {events.map((event) => (
-            <div key={event._id} className="border rounded-lg p-4 shadow">
-              <h2 className="text-xl font-semibold">{event.title}</h2>
+               <div
+               key={event._id}
+               className="border rounded-lg p-4 shadow cursor-pointer hover:bg-gray-100"
+               onClick={() => navigate(`/events/${event._id}`)}
+>             <h2 className="text-xl font-semibold">{event.title}</h2>
               <p className="text-gray-700">{event.description}</p>
               <p><strong>Venue:</strong> {event.venue}</p>
               <p>
