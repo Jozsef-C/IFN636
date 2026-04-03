@@ -6,25 +6,45 @@ const MyBookings = () => {
   const { user } = useAuth();
   const [bookings, setBookings] = useState([]);
 
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const response = await axiosInstance.get('/api/bookings', {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
-        setBookings(response.data);
-      } catch (error) {
-        console.error(error);
-        alert('Failed to fetch bookings.');
-      }
-    };
+  const fetchBookings = async () => {
+    try {
+      const response = await axiosInstance.get('/api/bookings', {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+      setBookings(response.data);
+    } catch (error) {
+      console.error(error);
+      alert('Failed to fetch bookings.');
+    }
+  };
 
+  useEffect(() => {
     if (user) {
       fetchBookings();
     }
   }, [user]);
+
+  const handleCancelBooking = async (bookingId) => {
+    const confirmCancel = window.confirm('Are you sure you want to cancel this booking?');
+
+    if (!confirmCancel) return;
+
+    try {
+      await axiosInstance.delete(`/api/bookings/${bookingId}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+
+      alert('Booking cancelled successfully.');
+      fetchBookings();
+    } catch (error) {
+      console.error(error);
+      alert(error?.response?.data?.message || 'Failed to cancel booking.');
+    }
+  };
 
   return (
     <div className="container mx-auto p-6">
@@ -46,6 +66,15 @@ const MyBookings = () => {
               <strong>Date:</strong>{' '}
               {new Date(booking.createdAt).toLocaleString()}
             </p>
+
+            {booking.status !== 'cancelled' && (
+              <button
+                onClick={() => handleCancelBooking(booking._id)}
+                className="mt-3 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              >
+                Cancel Booking
+              </button>
+            )}
           </div>
         ))
       )}
