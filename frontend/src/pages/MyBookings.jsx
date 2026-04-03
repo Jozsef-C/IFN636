@@ -9,7 +9,7 @@ const MyBookings = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const response = await axiosInstance.get('/api/bookings/my', {
+        const response = await axiosInstance.get('/api/bookings', {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
@@ -36,11 +36,12 @@ const MyBookings = () => {
         bookings.map((booking) => (
           <div key={booking._id} className="border p-4 mb-4 rounded">
             <h2 className="text-xl font-semibold">
-              {booking.event?.title || 'Event'}
+              {booking.eventId?.title || 'Event'}
             </h2>
-            <p><strong>Ticket:</strong> {booking.ticket?.name}</p>
+            <p><strong>Ticket:</strong> {booking.ticketId?.name || 'Ticket'}</p>
             <p><strong>Quantity:</strong> {booking.quantity}</p>
             <p><strong>Total Price:</strong> ${booking.totalPrice}</p>
+            <p><strong>Status:</strong> {booking.status}</p>
             <p>
               <strong>Date:</strong>{' '}
               {new Date(booking.createdAt).toLocaleString()}
