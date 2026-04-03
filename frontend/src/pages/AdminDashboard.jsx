@@ -10,6 +10,7 @@ const AdminDashboard = () => {
   const [events, setEvents] = useState([]);
   const [ticketsByEvent, setTicketsByEvent] = useState({});
   const [editingEventId, setEditingEventId] = useState(null);
+  const [editingTicketId, setEditingTicketId] = useState(null);
 
   const [eventFormData, setEventFormData] = useState({
     title: '',
@@ -92,6 +93,7 @@ const AdminDashboard = () => {
   };
 
   const resetTicketForm = () => {
+    setEditingTicketId(null);
     setTicketFormData({
       eventId: '',
       name: '',
@@ -171,23 +173,58 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleCreateTicket = async (e) => {
+  const handleCreateOrUpdateTicket = async (e) => {
     e.preventDefault();
 
     try {
-      await axiosInstance.post('/api/tickets', ticketFormData, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
+      const payload = {
+        ...ticketFormData,
+        price: Number(ticketFormData.price),
+        quantityAvailable: Number(ticketFormData.quantityAvailable),
+      };
 
-      alert('Ticket created successfully.');
+      if (editingTicketId) {
+        await axiosInstance.put(`/api/tickets/${editingTicketId}`, payload, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+        alert('Ticket updated successfully.');
+      } else {
+        await axiosInstance.post('/api/tickets', payload, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+        alert('Ticket created successfully.');
+      }
+
       resetTicketForm();
       fetchEvents();
     } catch (error) {
       console.error(error);
-      alert(error?.response?.data?.message || 'Failed to create ticket.');
+      alert(error?.response?.data?.message || 'Failed to save ticket.');
     }
+  };
+
+  const handleEditTicket = (ticket) => {
+    setEditingTicketId(ticket._id);
+    setTicketFormData({
+      eventId: ticket.eventId || '',
+      name: ticket.name || '',
+      description: ticket.description || '',
+      price: ticket.price || '',
+      quantityAvailable: ticket.quantityAvailable || '',
+      saleStart: ticket.saleStart
+        ? new Date(ticket.saleStart).toISOString().slice(0, 16)
+        : '',
+      saleEnd: ticket.saleEnd
+        ? new Date(ticket.saleEnd).toISOString().slice(0, 16)
+        : '',
+      status: ticket.status || 'active',
+    });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDeleteTicket = async (ticketId) => {
@@ -202,6 +239,11 @@ const AdminDashboard = () => {
       });
 
       alert('Ticket deleted successfully.');
+
+      if (editingTicketId === ticketId) {
+        resetTicketForm();
+      }
+
       fetchEvents();
     } catch (error) {
       console.error(error);
@@ -311,9 +353,11 @@ const AdminDashboard = () => {
       </div>
 
       <div className="bg-white shadow rounded p-6 mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Create Ticket</h2>
+        <h2 className="text-2xl font-semibold mb-4">
+          {editingTicketId ? 'Edit Ticket' : 'Create Ticket'}
+        </h2>
 
-        <form onSubmit={handleCreateTicket} className="grid gap-4">
+        <form onSubmit={handleCreateOrUpdateTicket} className="grid gap-4">
           <select
             name="eventId"
             value={ticketFormData.eventId}
@@ -397,12 +441,24 @@ const AdminDashboard = () => {
             <option value="sold_out">Sold Out</option>
           </select>
 
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Create Ticket
-          </button>
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              {editingTicketId ? 'Update Ticket' : 'Create Ticket'}
+            </button>
+
+            {editingTicketId && (
+              <button
+                type="button"
+                onClick={resetTicketForm}
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              >
+                Cancel Edit
+              </button>
+            )}
+          </div>
         </form>
       </div>
 
@@ -451,12 +507,21 @@ const AdminDashboard = () => {
                         <p><strong>Available:</strong> {ticket.quantityAvailable}</p>
                         <p><strong>Status:</strong> {ticket.status}</p>
 
-                        <button
-                          onClick={() => handleDeleteTicket(ticket._id)}
-                          className="mt-2 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                        >
-                          Delete Ticket
-                        </button>
+                        <div className="mt-2 flex gap-3">
+                          <button
+                            onClick={() => handleEditTicket(ticket)}
+                            className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                          >
+                            Edit Ticket
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteTicket(ticket._id)}
+                            className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                          >
+                            Delete Ticket
+                          </button>
+                        </div>
                       </div>
                     ))
                   ) : (
