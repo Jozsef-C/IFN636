@@ -8,6 +8,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
 
   const [events, setEvents] = useState([]);
+  const [editingEventId, setEditingEventId] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -50,33 +51,60 @@ const AdminDashboard = () => {
     }));
   };
 
-  const handleCreateEvent = async (e) => {
+  const resetForm = () => {
+    setEditingEventId(null);
+    setFormData({
+      title: '',
+      description: '',
+      venue: '',
+      eventDate: '',
+      category: '',
+      totalTickets: '',
+      price: '',
+    });
+  };
+
+  const handleCreateOrUpdateEvent = async (e) => {
     e.preventDefault();
 
     try {
-      await axiosInstance.post('/api/events', formData, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
+      if (editingEventId) {
+        await axiosInstance.put(`/api/events/${editingEventId}`, formData, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+        alert('Event updated successfully.');
+      } else {
+        await axiosInstance.post('/api/events', formData, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+        alert('Event created successfully.');
+      }
 
-      alert('Event created successfully.');
-
-      setFormData({
-        title: '',
-        description: '',
-        venue: '',
-        eventDate: '',
-        category: '',
-        totalTickets: '',
-        price: '',
-      });
-
+      resetForm();
       fetchEvents();
     } catch (error) {
       console.error(error);
-      alert(error?.response?.data?.message || 'Failed to create event.');
+      alert(error?.response?.data?.message || 'Failed to save event.');
     }
+  };
+
+  const handleEditEvent = (event) => {
+    setEditingEventId(event._id);
+    setFormData({
+      title: event.title || '',
+      description: event.description || '',
+      venue: event.venue || '',
+      eventDate: event.eventDate
+        ? new Date(event.eventDate).toISOString().slice(0, 16)
+        : '',
+      category: event.category || '',
+      totalTickets: event.totalTickets || '',
+      price: event.price || '',
+    });
   };
 
   const handleDeleteEvent = async (eventId) => {
@@ -91,6 +119,11 @@ const AdminDashboard = () => {
       });
 
       alert('Event deleted successfully.');
+
+      if (editingEventId === eventId) {
+        resetForm();
+      }
+
       fetchEvents();
     } catch (error) {
       console.error(error);
@@ -103,9 +136,11 @@ const AdminDashboard = () => {
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
 
       <div className="bg-white shadow rounded p-6 mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Create Event</h2>
+        <h2 className="text-2xl font-semibold mb-4">
+          {editingEventId ? 'Edit Event' : 'Create Event'}
+        </h2>
 
-        <form onSubmit={handleCreateEvent} className="grid gap-4">
+        <form onSubmit={handleCreateOrUpdateEvent} className="grid gap-4">
           <input
             type="text"
             name="title"
@@ -176,12 +211,24 @@ const AdminDashboard = () => {
             required
           />
 
-          <button
-            type="submit"
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-          >
-            Create Event
-          </button>
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+            >
+              {editingEventId ? 'Update Event' : 'Create Event'}
+            </button>
+
+            {editingEventId && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              >
+                Cancel Edit
+              </button>
+            )}
+          </div>
         </form>
       </div>
 
@@ -202,12 +249,21 @@ const AdminDashboard = () => {
                 <p><strong>Price:</strong> ${event.price}</p>
                 <p><strong>Available Tickets:</strong> {event.availableTickets}</p>
 
-                <button
-                  onClick={() => handleDeleteEvent(event._id)}
-                  className="mt-3 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                >
-                  Delete Event
-                </button>
+                <div className="mt-3 flex gap-3">
+                  <button
+                    onClick={() => handleEditEvent(event)}
+                    className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                  >
+                    Edit Event
+                  </button>
+
+                  <button
+                    onClick={() => handleDeleteEvent(event._id)}
+                    className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                  >
+                    Delete Event
+                  </button>
+                </div>
               </div>
             ))}
           </div>
