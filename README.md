@@ -63,8 +63,8 @@ The system was developed using a modern MERN-style architecture (MongoDB, Expres
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Jozsef-C/IFN636AT2-1.2
-cd IFN636AT2-1.2
+git clone https://github.com/Jozsef-C/IFN636
+cd IFN636
 ```
 
 ### 2. Install dependencies
@@ -156,7 +156,7 @@ This ensures code quality and prevents breaking changes.
 ## Project Structure
 
 ```
-IFN636AT2-1.2/
+IFN636/
 │
 ├── backend/
 │   ├── controllers/
