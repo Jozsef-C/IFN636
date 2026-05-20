@@ -1,6 +1,7 @@
 const Booking = require('../models/Booking');
 const Ticket = require('../models/Ticket');
 const Event = require('../models/Event');
+const BookingFacade = require("../services/bookingFacade");
 
 const getMyBookings = async (req, res) => {
     try {
@@ -39,48 +40,16 @@ const createBooking = async (req, res) => {
     const { eventId, ticketId, quantity } = req.body;
 
     try {
-        const event = await Event.findById(eventId);
-        if (!event) {
-            return res.status(404).json({ message: 'Event not found' });
-        }
 
-        const ticket = await Ticket.findById(ticketId);
-        if (!ticket) {
-            return res.status(404).json({ message: 'Ticket not found' });
-        }
-
-        if (ticket.eventId.toString() !== eventId) {
-            return res.status(400).json({ message: 'Ticket does not belong to the selected event' });
-        }
-
-        if (ticket.status !== 'active') {
-            return res.status(400).json({ message: 'Ticket is not available for booking' });
-        }
-
-        if (ticket.quantityAvailable < quantity) {
-            return res.status(400).json({ message: 'Not enough tickets available' });
-        }
-
-        const totalPrice = ticket.price * quantity;
-
-        const booking = await Booking.create({
-            userId: req.user.id,
+        const booking = await BookingFacade.createBooking(
+            req.user.id,
             eventId,
             ticketId,
-            quantity,
-            totalPrice,
-            status: 'active',
-        });
-
-        ticket.quantityAvailable -= quantity;
-
-        if (ticket.quantityAvailable === 0) {
-            ticket.status = 'sold_out';
-        }
-
-        await ticket.save();
+            quantity
+        );
 
         res.status(201).json(booking);
+
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
