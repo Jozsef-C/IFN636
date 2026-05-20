@@ -1,5 +1,6 @@
 const Ticket = require('../models/Ticket');
 const Event = require('../models/Event');
+const TicketFactory = require('../factories/ticketFactory');
 
 const getTicketsByEvent = async (req, res) => {
     try {
@@ -43,19 +44,24 @@ const createTicket = async (req, res) => {
             return res.status(404).json({ message: 'Associated event not found' });
         }
 
-        const ticket = await Ticket.create({
-            eventId,
-            name,
-            description,
-            price,
-            quantityAvailable,
-            saleStart,
-            saleEnd,
-            status,
-            createdBy: req.user ? req.user.id : null,
-        });
+        const ticketData = TicketFactory.createTicket(
+            {
+                eventId,
+                name,
+                description,
+                price,
+                quantityAvailable,
+                saleStart,
+                saleEnd,
+                status,
+            },
+            req.user ? req.user.id : null
+        );
+
+        const ticket = await Ticket.create(ticketData);
 
         res.status(201).json(ticket);
+
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
