@@ -1,6 +1,7 @@
 const Ticket = require('../models/Ticket');
 const Event = require('../models/Event');
 const TicketFactory = require('../factories/ticketFactory');
+const TicketStatusAdapter = require('../adapters/ticketStatusAdapter');
 
 const getTicketsByEvent = async (req, res) => {
     try {
@@ -91,7 +92,7 @@ const updateTicket = async (req, res) => {
         ticket.quantityAvailable = quantityAvailable ?? ticket.quantityAvailable;
         ticket.saleStart = saleStart ?? ticket.saleStart;
         ticket.saleEnd = saleEnd ?? ticket.saleEnd;
-        ticket.status = status ?? ticket.status;
+        ticket.status = status ? TicketStatusAdapter.adapt(status) : ticket.status;
 
         const updatedTicket = await ticket.save();
         res.json(updatedTicket);
