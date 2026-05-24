@@ -4,11 +4,14 @@ import { useNavigate } from 'react-router-dom';
 
 const Events = () => {
   const [events, setEvents] = useState([]);
+  const [search, setSearch] = useState('');
   const navigate = useNavigate();
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axiosInstance.get('/api/events');
+        const response = await axiosInstance.get('/api/events',{
+          params: { search }
+        });
         setEvents(response.data);
       } catch (error) {
         alert('Failed to fetch events.');
@@ -16,11 +19,17 @@ const Events = () => {
     };
 
     fetchEvents();
-  }, []);
+  }, [search]);
 
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">Festival Events</h1>
+      <input type="text"
+        placeholder="Search events by keyword"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="border rounded p-2 mb-4 w-full"
+      />
 
       {events.length === 0 ? (
         <p>No events available.</p>

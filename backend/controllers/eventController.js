@@ -2,7 +2,22 @@ const Event = require('../models/Event');
 
 const getEvents = async (req, res) => {
     try {
-        const events = await Event.find().sort({ eventDate: 1 });
+        const { search } = req.query;
+
+        let query = {};
+
+        if (search) {
+            query = {
+                $or: [
+                    { title: { $regex: search, $options: 'i' } },
+                    { description: { $regex: search, $options: 'i' } },
+                    { venue: { $regex: search, $options: 'i' } },
+                    { category: { $regex: search, $options: 'i' } }
+                ]
+            };
+        }        
+        
+        const events = await Event.find(query).sort({ eventDate: 1 });
         res.json(events);
     } catch (error) {
         res.status(500).json({ message: error.message });
