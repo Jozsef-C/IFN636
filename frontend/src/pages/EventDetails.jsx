@@ -113,6 +113,12 @@ const EventDetails = () => {
             <p><strong>Price:</strong> ${ticket.price}</p>
             <p><strong>Available:</strong> {ticket.quantityAvailable}</p>
 
+            {ticket.quantityAvailable > 0 && ticket.quantityAvailable <= 5 && (
+              <p className="text-red-600 font-semibold mt-1">
+                Only {ticket.quantityAvailable} tickets remaining!
+              </p>
+            )}
+
             <div className="mt-3 flex items-center gap-3">
               <input
                 type="number"

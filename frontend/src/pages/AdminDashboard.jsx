@@ -505,6 +505,13 @@ const AdminDashboard = () => {
                         <p>{ticket.description}</p>
                         <p><strong>Price:</strong> ${ticket.price}</p>
                         <p><strong>Available:</strong> {ticket.quantityAvailable}</p>
+
+                        {ticket.quantityAvailable > 0 && ticket.quantityAvailable <= 5 && (
+                        <p className="text-red-600 font-semibold">
+                         Low stock warning: only {ticket.quantityAvailable} tickets left
+                        </p>
+                        )}
+                        
                         <p><strong>Status:</strong> {ticket.status}</p>
 
                         <div className="mt-2 flex gap-3">
