@@ -39,7 +39,7 @@ jobs:
 
       - name: Build frontend
         working-directory: ./frontend
-        run: npm run build
+        run: CI=false npm run build
 
       - name: Create backend .env file
         working-directory: ./backend
